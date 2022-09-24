@@ -2,54 +2,47 @@
 #include <string>
 #include <cstdlib>
 
-#include "classes.h"
+#include "entities.h"
 
 using namespace std;
 
-int setup(Tile g[], int d) {
-	int a = d-1;
+class Game {
+	public:
+		int dim = 9;
+		Tile field[9*9];
 
-	for(int i = 0; i < d; i++) {
-		for(int j = 0; j < d; j++) {
-			g[i*d+j].setTrail(-1);
+		void setup() {
+			int n = dim;
+
+			for(int i = 0; i < dim; i++) {
+				for(int j = 0; j < dim; j++) {
+					field[i*dim+j].setTrailN(-1);
+					field[i*dim+j].setOccup(true);
+				}
+			}
+
+			for(int i = 0; i < dim; i++) {
+		                field[4*dim+i].setTrailN(n--);
+        		}
 		}
-	}
 
-	for(int i = 0; i < d; i++) {
-		for(int j = 0; j < d; j++) {
-			g[i*d+j].setOccup(false);
-		}
-	}
+		void draw() {
+			for(int i = 0; i < dim; i++) {
+				for(int j = 0; j < dim; j++) {
+					if(field[i*dim+j].getTrail() > -1) {
+		                                cout << "\u001b[33m~\u001b[0m";
+                		        } else {
+                               			cout << "\u001b[32m.\u001b[0m";
+                        		}
+				}
 
-	for(int i = 0; i < d; i++) {
-		g[4*d+i].setTrail(a);
-		a--;
-	}
-
-	return 0;
-}
-
-int draw(Tile g[], int d) {
-	for(int i = 0; i < d; i++) {
-		for(int j = 0; j < d; j++) {
-			if(g[i*d+j].getTrail()) {
-				cout << "\u001b[33m~\u001b[0m";
-			} else {
-				cout << "\u001b[32m.\u001b[0m";
+				cout << '\n';
 			}
 		}
-
-		cout << '\n';
-	}
-
-	return 0;
-}
+};
 
 int main() {
-	int dim = 9;
-	Tile game[dim*dim];
-
-	setup(game, dim); draw(game, dim);
+	Game session; session.setup(); session.draw();
 
 	return 0;
-}
+};
