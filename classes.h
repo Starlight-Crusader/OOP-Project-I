@@ -1,46 +1,33 @@
 #include <iostream>
 #include <string>
-#include <time.h> 
 
 class Tile {
 	private:
-		bool trail;
-
-		int numOfEntities;
-		int entities[];
+		int trailN;
+		bool occupied;
 
 	public:
-		void setTrail(bool newVal) {
-			trail = newVal;
+		void setTrailN(int val) {
+			trailN = val;
 		}
 
-		bool getTrail() {
-			return trail;
+		int getTrail() {
+			return trailN;
 		}
 
-		void setNum(int newVal) {
-			numOfEntities = newVal;
+		void setOccup(bool newVal) {
+			occupied = newVal;
 		}
 
-		int getNum() {
-			return numOfEntities;
-		}
-
-		void addEntity(int newId) {
-			entities[numOfEntities] = newId;
-			numOfEntities++;
-		}
-
-		void getEntities(int *a) {
-			for(int i = 0; i < numOfEntities; i++) {
-				*(a+i) = entities[i];
-			}
+		bool getOccup() {
+			return occupied;
 		}
 };
 
 class Entity {
 	private:
 		int id;
+		int x; int y;
 
 	public:
 		void setId(int newVal) {
@@ -49,6 +36,14 @@ class Entity {
 
 		int getId() {
 			return id;
+		}
+
+		void setCoords(int newX, int newY) {
+			x = newX; y = newY;
+		}
+
+		void getCoords(int *tempX, int *tempY) {
+			*tempX = x; *tempY = y;
 		}
 };
 
@@ -75,7 +70,21 @@ class Enemy: public Entity {
 			hp = newVal;
 		}
 
-		int getHp() {
+		float getHp() {
 			return hp;
+		}
+};
+
+class Support: public Entity {
+	private:
+		float boost;
+
+	public:
+		void setBoost(float val) {
+			boost = val;
+		}
+
+		float getBoost() {
+			return boost;
 		}
 };
