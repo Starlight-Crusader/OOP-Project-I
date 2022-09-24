@@ -80,6 +80,24 @@ class Stats {
                         cout << '\n';
 		}
 
+		void printPhase() {
+			if(!phase) {
+				cout << "\n=========== PLANNIG PHASE ===========";
+			} else {
+				cout << "\n============ ACTION PHASE ===========";
+			}
+		}
+
+		void printStats() {
+			cout << '\n';
+                        cout << "-------------------------------------\n";
+                        cout << "               Stats:                \n";
+                        cout << " * HP: " << hp << ",\n";
+                        cout << " * Money: " << money << '\n';
+                        cout << "-------------------------------------\n";
+                        cout << '\n';
+		}
+
 		void setNum(int newVal) {
 			numOfTowers = newVal;
 		}
@@ -142,7 +160,7 @@ class Console {
 			cout << " 5. Finish the game\n";
 			cout << "-------------------------------------\n";
 			cout << '\n';
-			cout << "INPUT: ";
+			cout << "OPTION: ";
 		}
 
 		void printOptionsTower() {
@@ -204,10 +222,10 @@ class PriceList {
 };
 
 int main() {
-	Console c;
+	Console c; c.clrscr();
 	PriceList p; p.setup();
 	Stats s; s.setup();
-	Game session; session.setup(); session.draw();
+	Game session; session.setup();
 
 	char option;
 	int x, y;
@@ -215,6 +233,8 @@ int main() {
 	while(!s.getAbort()) {
 		if(!s.getPhase()) {
 			c.clrscr();
+			s.printPhase();
+			s.printStats();
 			session.draw();
 			c.printOptionsMain();
 
@@ -262,6 +282,7 @@ int main() {
 					break;
 
 				case '5':
+					c.clrscr();
 					s.printFinalStats();
 					return 0;
 			}
