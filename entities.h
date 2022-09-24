@@ -11,7 +11,7 @@ class Tile {
 			trailN = val;
 		}
 
-		int getTrail() {
+		int getTrailN() {
 			return trailN;
 		}
 
@@ -26,18 +26,9 @@ class Tile {
 
 class Entity {
 	private:
-		int id;
 		int x; int y;
 
 	public:
-		void setId(int newVal) {
-			id = newVal;
-		}
-
-		int getId() {
-			return id;
-		}
-
 		void setCoords(int newX, int newY) {
 			x = newX; y = newY;
 		}

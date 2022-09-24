@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <unistd.h>
 
 #include "entities.h"
 
@@ -25,7 +26,7 @@ class Game {
 			for(int i = 0; i < dim; i++) {
 				for(int j = 0; j < dim; j++) {
 					field[i*dim+j].setTrailN(-1);
-					field[i*dim+j].setOccup(true);
+					field[i*dim+j].setOccup(false);
 				}
 			}
 
@@ -37,11 +38,13 @@ class Game {
 		void draw() {
 			for(int i = 0; i < dim; i++) {
 				for(int j = 0; j < dim; j++) {
-					if(field[i*dim+j].getTrail() > -1) {
+					if(field[i*dim+j].getTrailN() > -1) {
 		                                cout << "\u001b[33m~\u001b[0m";
-                		        } else {
+                		        } else if(!field[i*dim+j].getOccup()){
                                			cout << "\u001b[32m.\u001b[0m";
-                        		}
+                        		} else {
+						cout << '+';
+					}
 				}
 
 				cout << '\n';
@@ -160,7 +163,6 @@ class Console {
 			cout << " 5. Finish the game\n";
 			cout << "-------------------------------------\n";
 			cout << '\n';
-			cout << "OPTION: ";
 		}
 
 		void printOptionsTower() {
@@ -222,6 +224,8 @@ class PriceList {
 };
 
 int main() {
+	unsigned int second = 1000000;
+
 	Console c; c.clrscr();
 	PriceList p; p.setup();
 	Stats s; s.setup();
@@ -248,7 +252,20 @@ int main() {
 					if(x == 0 && y == 0) {
 						break;
 					} else {
-						// Functionality for creating a new tower
+						if(session.field[(y-1)*session.dim+(x-1)].getTrailN() > -1 || session.field[(y-1)*session.dim+(x-1)].getOccup() == true) {
+							cout << "ERROR: This tile in not free!\n";
+							usleep(2*second);
+							break;
+						}
+
+						s.setMoney(s.getMoney() - 5);
+						s.setNum(s.getNum() + 1);
+
+						session.towers[session.numOfTowers].setCoords(x-1, y-1);
+						session.towers[session.numOfTowers].setDmg(1.0f);
+						session.numOfTowers++;
+
+						session.field[(y-1)*session.dim+(x-1)].setOccup(true);
 
 						break;
 					}
