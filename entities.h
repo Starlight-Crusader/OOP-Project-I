@@ -33,8 +33,12 @@ class Entity {
 			x = newX; y = newY;
 		}
 
-		void getCoords(int *tempX, int *tempY) {
-			*tempX = x; *tempY = y;
+		int getX() {
+			return x+1;
+		}
+
+		int getY() {
+			return y+1;
 		}
 };
 

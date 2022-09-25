@@ -8,15 +8,86 @@
 using namespace std;
 
 class Game {
-	public:
-		int dim = 9;
-
+	private:
+		int dim;
 		Tile field[9*9];
-		Enemy enemies[100]; int numOfEnemies;
-		Tower towers[9*9]; int numOfTowers;
-		Support supports[9*9]; int numOfSupports;
+                Enemy enemies[100]; int numOfEnemies;
+                Tower towers[9*9]; int numOfTowers;
+                Support supports[9*9]; int numOfSupports;
+
+	public:
+		int getDim() {
+			return dim;
+		}
+
+		int getNumOfE() {
+			return numOfEnemies;
+		}
+
+		int getNumOfT() {
+			return numOfTowers;
+		}
+
+		int getNumOfS() {
+			return numOfSupports;
+		}
+
+		bool checkTile(int j, int i) {
+			if(field[i*dim+j].getTrailN() > -1 || field[i*dim+j].getOccup() == true) {
+                        	return true;
+                        } else {
+				return false;
+			}
+		}
+
+		void buildAStruct(int j, int i, int t) {
+			if(t == 0) {
+				towers[numOfTowers].setCoords(j, i);
+                                towers[numOfTowers].setDmg(1.0f);
+                                numOfTowers++;
+
+                                field[i*dim+j].setOccup(true);
+			} else if(t == 1) {
+				supports[numOfSupports].setCoords(j, i);
+                                supports[numOfSupports].setBoost(1.0f);
+                                numOfSupports++;
+
+                                field[i*dim+j].setOccup(true);
+			}
+		}
+
+		int sellAStructure(int j, int i) {
+			for(int a = 0; a < numOfTowers; a++) {
+				if(towers[a].getX()-1 == j && towers[a].getY()-1 == i) {
+					for(int b = a; b < numOfTowers; b++) {
+						towers[b].setCoords(towers[b+1].getX()-1, towers[b+1].getY()-1);
+						towers[b].setDmg(towers[b+1].getDmg());
+					}
+
+					field[i*dim+j].setOccup(false);
+					numOfTowers--;
+					return 0;
+				}
+			}
+
+			for(int a = 0; a < numOfSupports; a++) {
+                                if(supports[a].getX()-1 == j && supports[a].getY()-1 == i) {
+                                        for(int b = a; b < numOfSupports; b++) {
+                                                supports[b].setCoords(supports[b+1].getX()-1, supports[b+1].getY()-1);
+                                                supports[b].setBoost(supports[b+1].getBoost());
+                                        }
+
+					field[i*dim+j].setOccup(false);
+                                        numOfSupports--;
+                                        return 1;
+                                }
+                        }
+
+			return -1;
+		}
 
 		void setup() {
+			dim = 9;
 			numOfEnemies = 0;
 			numOfTowers = 0;
 			numOfSupports = 0;
@@ -43,7 +114,17 @@ class Game {
                 		        } else if(!field[i*dim+j].getOccup()){
                                			cout << "\u001b[32m.\u001b[0m";
                         		} else {
-						cout << '+';
+						for(int a = 0; a < numOfTowers; a++) {
+							if(towers[a].getX()-1 == j && towers[a].getY()-1 == i) {
+								cout << "\u001b[34m*\u001b[0m";
+							}
+						}
+
+						for(int a = 0; a < numOfSupports; a++) {
+                                                        if(supports[a].getX()-1 == j && supports[a].getY()-1 == i) {
+                                                                cout << "\u001b[31m+\u001b[0m";
+                                                        }
+                                                }
 					}
 				}
 
@@ -64,11 +145,19 @@ class Stats {
 	public:
 		void setup() {
 			numOfTowers = 0;
-			money = 10;
+			money = 20;
 			round = 1;
 			phase = 0;
 			abort = false;
 			hp = 50;
+		}
+
+		bool checkMoney(int val) {
+			if(money >= val) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		void printFinalStats() {
@@ -156,9 +245,9 @@ class Console {
 			cout << '\n';
 			cout << "-------------------------------------\n";
 			cout << "          Select an action:\n";
-			cout << " 1. Place a new tower,\n";
-			cout << " 2. Place a new support,\n";
-			cout << " 3. Sell a support,\n";
+			cout << " 1. Place a new tower (10),\n";
+			cout << " 2. Place a new support (20),\n";
+			cout << " 3. Sell a structure (! 50% back !),\n";
 			cout << " 4. Start the next round,\n";
 			cout << " 5. Finish the game\n";
 			cout << "-------------------------------------\n";
@@ -231,7 +320,7 @@ int main() {
 	Stats s; s.setup();
 	Game session; session.setup();
 
-	char option;
+	char option; int result;
 	int x, y;
 
 	while(!s.getAbort()) {
@@ -246,38 +335,55 @@ int main() {
 
 			switch(option) {
 				case '1':
+					if(!s.checkMoney(p.getPriceTower())) {
+						cout << "You do not have enough money!\n";
+						usleep(2*second);
+						break;
+					}
+
 					c.printOptionsTower();
 					scanf("%i %i", &x, &y);
 
 					if(x == 0 && y == 0) {
 						break;
 					} else {
-						if(session.field[(y-1)*session.dim+(x-1)].getTrailN() > -1 || session.field[(y-1)*session.dim+(x-1)].getOccup() == true) {
+						if(session.checkTile(x-1, y-1)) {
 							cout << "ERROR: This tile in not free!\n";
 							usleep(2*second);
 							break;
+						} else {
+							s.setMoney(s.getMoney() - 10);
+	                                                s.setNum(s.getNum() + 1);
+
+							session.buildAStruct(x-1, y-1, 0);
 						}
-
-						s.setMoney(s.getMoney() - 5);
-						s.setNum(s.getNum() + 1);
-
-						session.towers[session.numOfTowers].setCoords(x-1, y-1);
-						session.towers[session.numOfTowers].setDmg(1.0f);
-						session.numOfTowers++;
-
-						session.field[(y-1)*session.dim+(x-1)].setOccup(true);
 
 						break;
 					}
 
 				case '2':
+					if(!s.checkMoney(p.getPriceSupport())) {
+        	                                cout << "You do not have enough money!\n";
+                                                usleep(2*second);
+                                                break;
+                                        }
+
 					c.printOptionsSupport();
 					scanf("%i %i", &x, &y);
 
 					if(x == 0 && y == 0) {
 						break;
 					} else {
-						// Functionality for creating a new support
+						if(session.checkTile(x-1, y-1)) {
+                                                        cout << "ERROR: This tile in not free!\n";
+                                                        usleep(2*second);
+                                                        break;
+                                                } else {
+                                                        s.setMoney(s.getMoney() - 20);
+                                                        s.setNum(s.getNum() + 1);
+
+                                                        session.buildAStruct(x-1, y-1, 1);
+                                                }
 
 						break;
 					}
@@ -289,7 +395,20 @@ int main() {
                                         if(x == 0 && y == 0) {
                                                 break;
                                         } else {
-                                                // Functionality for selling a support
+						result = session.sellAStructure(x-1, y-1);
+                                                if(result > -1) {
+							if(result == 0) {
+								s.setMoney(s.getMoney() + p.getPriceTower() / 2);
+							} else {
+								s.setMoney(s.getMoney() + p.getPriceSupport() / 2);
+							}
+
+							cout << "Success!\n";
+							usleep(2*second);
+						} else {
+							cout << "Unable to find a structure with these coord-s!\n";
+							usleep(2*second);
+						}
 
 						break;
                                         }
