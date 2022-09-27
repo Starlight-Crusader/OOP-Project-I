@@ -1,20 +1,25 @@
 #include <iostream>
 #include <string>
 
-class Tile {
+class Trail {
 	private:
 		int trailN;
-		bool occupied;
 
 	public:
 		void setTrailN(int val) {
-			trailN = val;
-		}
+                        trailN = val;
+                }
 
-		int getTrailN() {
-			return trailN;
-		}
+                int getTrailN() {
+                        return trailN;
+                }
+};
 
+class Tile: public Trail {
+	private:
+		bool occupied;
+
+	public:
 		void setOccup(bool newVal) {
 			occupied = newVal;
 		}
