@@ -86,6 +86,14 @@ class Game {
 			return -1;
 		}
 
+		/* void printE() {
+			for(int i = 0; i < numOfEnemies; i++) {
+				cout << "x = " << enemies[i].getX() << '\n';
+				cout << "y = " << enemies[i].getX() << '\n';
+				cout << "s = " << enemies[i].getStep() << '\n';
+			}
+		} */
+
 		void setup() {
 			dim = 9;
 			numOfEnemies = 0;
@@ -102,11 +110,14 @@ class Game {
 			}
 
 			for(int i = 0; i < dim; i++) {
-		                field[4*dim+i].setTrailN(n--);
+		                field[4*dim+i].setTrailN(n);
+				n--;
         		}
 		}
 
 		void draw() {
+			bool br = false;
+
 			for(int i = 0; i < dim; i++) {
 				for(int i = 0; i < 14; i++) {
 					cout << ' ';
@@ -114,7 +125,21 @@ class Game {
 
 				for(int j = 0; j < dim; j++) {
 					if(field[i*dim+j].getTrailN() > -1) {
-		                                cout << "\u001b[33m~\u001b[0m";
+						br = false;
+
+						for(int k = 0; k < numOfEnemies; k++) {
+							if(enemies[k].getX()-1 == j && enemies[k].getY()-1 == i) {
+								cout << "\u001b[31m0\u001b[0m";
+								br = true;
+								break;
+							}
+						}
+
+						if(!br) {
+							cout << "\u001b[33m~\u001b[0m";
+						} else {
+							continue;
+						}
                 		        } else if(!field[i*dim+j].getOccup()){
                                			cout << "\u001b[32m.\u001b[0m";
                         		} else {
@@ -135,6 +160,98 @@ class Game {
 				cout << '\n';
 			}
 		}
+
+		void addEnemies(int n) {
+			numOfEnemies = n;
+
+			for(int i = 0; i < n; i++) {
+				enemies[i].setHp(2.0f);
+				enemies[i].setStep(i + 11);
+				enemies[i].setCoords(999, 999);
+			}
+		}
+
+		void moveEnemies() {
+			for(int i = 0; i < numOfEnemies; i++) {
+				enemies[i].setStep(enemies[i].getStep()-1);
+			}
+		}
+
+		void rewriteCoords() {
+			int br = 0;
+
+			for(int i = 0; i < numOfEnemies; i++) {
+				br = 0;
+
+				for(int j = 0; j < dim; j++) {
+					for(int k = 0; k < dim; k++) {
+						if(field[j*dim+k].getTrailN() == enemies[i].getStep()) {
+							enemies[i].setCoords(k, j);
+							br = 1; break;
+						}
+
+						if(br) { break; }
+					}
+				}
+
+				if(!br) {
+					enemies[i].setCoords(999, 999);
+				}
+			}
+		}
+
+		int shootTargets() {
+			int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+			int kills = 0;
+			bool shot = false;
+
+			for(int i = 0; i < numOfTowers; i++) {
+				shot = false;
+
+				for(int j = 7; j >= 0; j--) {
+					for(int k = 0; k < numOfEnemies; k++) {
+						if(towers[i].getX()+directions[j][1] == enemies[k].getX() && towers[i].getY()+directions[j][0] == enemies[k].getY()) {
+							enemies[k].setHp(enemies[k].getHp()-towers[i].getDmg()); shot = true;
+
+							if(enemies[k].getHp() <= 0) {
+								for(int a = k; a < numOfTowers; a++) {
+                                                			enemies[a].setCoords(enemies[a+1].getX()-1, enemies[a+1].getY()-1);
+                                                			enemies[a].setHp(enemies[a+1].getHp());
+                                        			}
+
+								numOfEnemies--;
+								kills++;
+							}
+						}
+
+						if(shot) { break; }
+					}
+
+					if(shot) { break; }
+				}
+			}
+
+			return kills;
+		}
+
+		int checkFinish() {
+			int damage = 0;
+
+			for(int i = 0; i < numOfEnemies; i++) {
+				if(enemies[i].getStep() < 1) {
+					damage += 2;
+
+					for(int a = i; a < numOfTowers; a++) {
+                                        	enemies[a].setCoords(enemies[a+1].getX()-1, enemies[a+1].getY()-1);
+                                               	enemies[a].setHp(enemies[a+1].getHp());
+                                        }
+
+                                       	numOfEnemies--;
+				}
+			}
+
+			return damage;
+		}
 };
 
 class Stats {
@@ -145,15 +262,25 @@ class Stats {
 		int phase;
 		bool abort;
 		int hp;
+		int kills;
 
 	public:
+		void setKills(int newVal) {
+			kills = newVal;
+		}
+
+		int getKills() {
+			return kills;
+		}
+
 		void setup() {
 			numOfTowers = 0;
 			money = 20;
-			round = 1;
+			round = 0;
 			phase = 0;
 			abort = false;
 			hp = 50;
+			kills = 0;
 		}
 
 		bool checkMoney(int val) {
@@ -171,16 +298,17 @@ class Stats {
                         cout << " * Rounds survived: " << round-1 << ",\n";
                         cout << " * Towers placed: " << numOfTowers << ",\n";
                         cout << " * HP left: " << hp << ",\n";
-                        cout << " * Money left: " << money << '\n';
+                        cout << " * Enemies killed: " << kills << '\n';
                         cout << "-------------------------------------\n";
                         cout << '\n';
 		}
 
 		void printPhase() {
 			if(!phase) {
-				cout << "\n=========== PLANNIG PHASE ===========";
+				cout << "\n=========== PLANNIG PHASE ===========\n";
 			} else {
-				cout << "\n============ ACTION PHASE ===========";
+				cout << "\n============ ACTION PHASE ===========\n";
+				cout << '\n';
 			}
 		}
 
@@ -318,6 +446,7 @@ class PriceList {
 
 int main() {
 	unsigned int second = 1000000;
+	int v = 0;
 
 	Console c; c.clrscr();
 	PriceList p; p.setup();
@@ -427,7 +556,32 @@ int main() {
 					return 0;
 			}
 		} else {
-			// Simulation of the round
+			s.setRound(s.getRound() + 1); v = 0;
+
+			session.addEnemies(2 + s.getRound() / 2);
+
+			while(session.getNumOfE()) {
+				session.moveEnemies(); session.rewriteCoords();
+
+				v = session.checkFinish();
+				s.setHp(s.getHp() - v);
+
+				if(s.getHp() <= 0) {
+					c.clrscr();
+                                        s.printFinalStats();
+                                        return 0;
+				}
+
+				c.clrscr(); s.printPhase(); session.draw(); usleep(0.1*second);
+
+				v = session.shootTargets();
+				s.setMoney(s.getMoney() + v);
+				s.setKills(s.getKills() + v);
+
+				c.clrscr(); s.printPhase(); session.draw(); usleep(0.1*second);
+			}
+
+			s.setPhase(0);
 		}
 	}
 };

@@ -42,7 +42,7 @@ class Entity {
 		}
 };
 
-class Tower: protected Entity {
+class Tower: public Entity {
 	private:
 		float dmg;
 
@@ -56,9 +56,10 @@ class Tower: protected Entity {
 		}
 };
 
-class Enemy: protected Entity {
+class Enemy: public Entity {
 	private:
 		float hp;
+		int step;
 
 	public:
 		void setHp(float newVal) {
@@ -68,9 +69,17 @@ class Enemy: protected Entity {
 		float getHp() {
 			return hp;
 		}
+
+		void setStep(int val) {
+			step = val;
+		}
+
+		int getStep() {
+			return step;
+		}
 };
 
-class Support: protected Entity {
+class Support: public Entity {
 	private:
 		float boost;
 
