@@ -108,6 +108,10 @@ class Game {
 
 		void draw() {
 			for(int i = 0; i < dim; i++) {
+				for(int i = 0; i < 14; i++) {
+					cout << ' ';
+				}
+
 				for(int j = 0; j < dim; j++) {
 					if(field[i*dim+j].getTrailN() > -1) {
 		                                cout << "\u001b[33m~\u001b[0m";
