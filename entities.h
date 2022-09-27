@@ -42,7 +42,7 @@ class Entity {
 		}
 };
 
-class Tower: public Entity {
+class Tower: protected Entity {
 	private:
 		float dmg;
 
@@ -56,7 +56,7 @@ class Tower: public Entity {
 		}
 };
 
-class Enemy: public Entity {
+class Enemy: protected Entity {
 	private:
 		float hp;
 
@@ -70,7 +70,7 @@ class Enemy: public Entity {
 		}
 };
 
-class Support: public Entity {
+class Support: protected Entity {
 	private:
 		float boost;
 
